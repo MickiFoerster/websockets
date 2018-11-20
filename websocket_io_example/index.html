@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h1>WebSocket.io Test</h1>
+  </body>
+  <script type="text/javascript">
+    var ws = new WebSocket("ws://" + window.location.host);
+    ws.onopen = function(event) {
+      console.log("Verbindung aufgebaut!");
+      ws.send("Hallo!");
+    }
+
+    ws.onmessage = function(event) {
+      console.log("Eingegangene Nachricht: " + event.data);
+      ws.close();
+    }
+
+    ws.onerror = function(event) {
+      console.log(event.reason);
+    }
+
+    ws.onclose = function(event) {
+      if(!event.wasClean) {
+        console.log("Ein Fehler ist aufgetreten! Code: " + event.code);
+        console.log("Der Grund dafuer war: " + event.reason);
+      }
+      else {
+        console.log("Verbindung getrennt!");
+      }
+    }
+  </script>
+</html>
