@@ -1,0 +1,26 @@
+<html>
+  <body>
+  <script>
+    var ws = new WebSocket('ws://echo.websocket.org/')
+
+    ws.onopen = function() {
+      console.log('websocket connection established')
+      ws.send('Hello websocket endpoint');
+      console.log('message sent');
+    };
+
+    ws.onmessage = function(message) {
+      console.log('server: ' + message.data);
+      ws.close();
+    };
+
+    ws.onclose = function(event) {
+      console.log('websocket closed')
+    };
+
+    ws.onerror = function(event) {
+      console.log('websocket error: ' + event.reason + '(' + event.code + ')');
+    };
+  </script>
+  </body>
+</html>
