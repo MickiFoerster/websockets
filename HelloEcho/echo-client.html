@@ -1,7 +1,8 @@
 <html>
   <body>
   <script>
-    var ws = new WebSocket('ws://echo.websocket.org/')
+    //var ws = new WebSocket('ws://echo.websocket.org/')
+    var ws = new WebSocket('ws://localhost:12345/echo')
 
     ws.onopen = function() {
       console.log('websocket connection established')
