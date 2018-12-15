@@ -1,26 +1,30 @@
 <html>
   <body>
+    <h1>Welcome to my Websockets Example</h1>
   <script>
-    //var ws = new WebSocket('ws://echo.websocket.org/')
     var ws = new WebSocket('ws://localhost:12345/echo')
 
     ws.onopen = function() {
-      console.log('websocket connection established')
-      ws.send('Hello websocket endpoint');
-      console.log('message sent');
+      console.log('onopen: websocket connection established')
+      ws.send('A');
+      console.log('onopen: message sent');
     };
 
     ws.onmessage = function(message) {
-      console.log('server: ' + message.data);
-      ws.close();
+      console.log('onmessage: server: ' + message.data);
+      if ( message.data == 'A' ) {
+        ws.send('B');
+      }
+      ws.send('C');
+      return false;
     };
 
     ws.onclose = function(event) {
-      console.log('websocket closed')
+      console.log('onclose: websocket closed')
     };
 
     ws.onerror = function(event) {
-      console.log('websocket error: ' + event.reason + '(' + event.code + ')');
+      console.log('onerror: websocket error: ' + event.reason + '(' + event.code + ')');
     };
   </script>
   </body>
