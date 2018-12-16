@@ -7,21 +7,34 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"golang.org/x/net/websocket"
 )
 
 // echoServer serves websocket requests
 func echoServer(ws *websocket.Conn) {
+	defer func() {
+		log.Println("connection handler exits")
+	}()
 	fmt.Println("local address:", ws.LocalAddr())
 	fmt.Println("remote address:", ws.RemoteAddr())
 	buf := make([]byte, 4096)
-	n, err := ws.Read(buf)
-	if err != nil {
-		fmt.Println("Could not read from websocket", err)
-	}
+	n, _ := ws.Read(buf)
 	log.Printf("Received %d bytes: %q\n", n, buf[:n])
-	ws.Write([]byte("A"))
+	ws.Write([]byte("B"))
+	n, _ = ws.Read(buf)
+	log.Printf("Received %d bytes: %q\n", n, buf[:n])
+	time.Sleep(2 * time.Second)
+	ws.Write([]byte("C"))
+	n, _ = ws.Read(buf)
+	log.Printf("Received %d bytes: %q\n", n, buf[:n])
+	time.Sleep(2 * time.Second)
+	ws.Write([]byte("D"))
+	n, _ = ws.Read(buf)
+	log.Printf("Received %d bytes: %q\n", n, buf[:n])
+	time.Sleep(2 * time.Second)
+	ws.Close()
 }
 
 func handleMainRoute(w http.ResponseWriter, r *http.Request) {

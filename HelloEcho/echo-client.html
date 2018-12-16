@@ -12,15 +12,15 @@
 
     ws.onmessage = function(message) {
       console.log('onmessage: server: ' + message.data);
-      if ( message.data == 'A' ) {
-        ws.send('B');
-      }
-      ws.send('C');
-      return false;
+      ws.send(message.data + message.data);
     };
 
     ws.onclose = function(event) {
       console.log('onclose: websocket closed')
+      if (!event.wasClean) {
+        console.log('onclose: WS error code: ' + event.code);
+        console.log('onclose: WS reason: ' + event.reason);
+      }
     };
 
     ws.onerror = function(event) {
