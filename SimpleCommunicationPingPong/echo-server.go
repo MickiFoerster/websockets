@@ -4,13 +4,19 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"html/template"
 	"log"
 	"net/http"
 	"time"
 
 	"golang.org/x/net/websocket"
 )
+
+var tpl *template.Template
+
+func init() {
+	tpl = template.Must(template.ParseFiles("tpl.gohtml"))
+}
 
 // echoServer serves websocket requests
 func echoServer(ws *websocket.Conn) {
@@ -38,12 +44,11 @@ func echoServer(ws *websocket.Conn) {
 }
 
 func handleMainRoute(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("handled")
-	fc, err := ioutil.ReadFile("echo-client.html")
+	fmt.Println("handle /")
+	err := tpl.ExecuteTemplate(w, "tpl.gohtml", `This is a text`)
 	if err != nil {
 		log.Fatal(err)
 	}
-	w.Write(fc)
 }
 
 // This example demonstrates a trivial echo server.
