@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <style>
+      section#client { display: flex; }
+      section#server { display: flex; }
+    </style>
+    <meta charset="UTF-8">
+    <title>Websockets Example</title>
+  </head>
+  <body>
+    <h1>Welcome to my Websockets Example</h1>
+{{.}}
+
+    <section id="client">
+      <h2>Clients</h2>
+    </section>
+
+    <section id="server">
+      <h2>Server</h2>
+    </section>
+
+<script>
+  var ws = new WebSocket('ws://localhost:12345/echo')
+  var client = document.createElement('ul');
+  var server = document.createElement('ul');
+  document.getElementById('server').appendChild(server);
+  document.getElementById('client').appendChild(client);
+
+  ws.onopen = function() {
+    console.log('onopen: websocket connection established')
+    ws.send('A');
+    console.log('onopen: message sent');
+  };
+
+  ws.onmessage = function(message) {
+    console.log('onmessage: server: ' + message.data);
+    var li = document.createElement('li');
+    li.innerHTML = message.data
+    server.appendChild(li);
+
+    var msg = message.data + message.data;
+    ws.send(msg);
+
+    li = document.createElement('li');
+    li.innerHTML = msg;
+    client.appendChild(li);
+  };
+
+  ws.onclose = function(event) {
+    console.log('onclose: server closed the connection')
+    if (!event.wasClean) {
+      console.log('onclose: WS error code: ' + event.code);
+      console.log('onclose: WS reason: ' + event.reason);
+    }
+  };
+
+  ws.onerror = function(event) {
+    console.log('onerror: websocket error: ' + event.reason + '(' + event.code + ')');
+  };
+</script>
+
+  </body>
+</html>
