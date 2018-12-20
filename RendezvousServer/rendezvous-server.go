@@ -17,8 +17,8 @@ func init() {
 	tpl = template.Must(template.ParseFiles("tpl.gohtml"))
 }
 
-// echoServer serves websocket requests
-func echoServer(ws *websocket.Conn) {
+// wsServer serves websocket requests
+func wsServer(ws *websocket.Conn) {
 	defer func() {
 		log.Println("ws connection handler exits")
 	}()
@@ -66,10 +66,9 @@ func handleMainRoute(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// This example demonstrates a trivial echo server.
 func main() {
 	http.HandleFunc("/", handleMainRoute)
-	http.Handle("/echo", websocket.Handler(echoServer))
+	http.Handle("/ws", websocket.Handler(wsServer))
 	err := http.ListenAndServe(":12345", nil)
 	if err != nil {
 		panic("ListenAndServe: " + err.Error())
