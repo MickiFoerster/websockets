@@ -3,11 +3,10 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
-	"time"
+	"strings"
 
 	"golang.org/x/net/websocket"
 )
@@ -21,30 +20,46 @@ func init() {
 // echoServer serves websocket requests
 func echoServer(ws *websocket.Conn) {
 	defer func() {
-		log.Println("connection handler exits")
+		log.Println("ws connection handler exits")
 	}()
-	fmt.Println("local address:", ws.LocalAddr())
-	fmt.Println("remote address:", ws.RemoteAddr())
+	log.Println("local address:", ws.LocalAddr())
+	log.Println("local address:", ws.LocalAddr().Network())
+	log.Println("remote address:", ws.RemoteAddr())
+	log.Println("remote address:", ws.RemoteAddr().Network())
+	log.Println("IsClientConn:", ws.IsClientConn())
+	log.Println("IsServerConn:", ws.IsServerConn())
+	log.Println("Location:", ws.Config().Location)
+	log.Println("Origin:", ws.Config().Origin)
+	log.Println("Protocol:", ws.Config().Protocol)
+	log.Println("Version:", ws.Config().Version)
+	log.Println("TlsConfig:", ws.Config().TlsConfig)
+	log.Println("Header:", ws.Config().Header)
 	buf := make([]byte, 4096)
-	n, _ := ws.Read(buf)
-	log.Printf("Received %d bytes: %q\n", n, buf[:n])
-	ws.Write([]byte("B"))
-	n, _ = ws.Read(buf)
-	log.Printf("Received %d bytes: %q\n", n, buf[:n])
-	time.Sleep(2 * time.Second)
-	ws.Write([]byte("C"))
-	n, _ = ws.Read(buf)
-	log.Printf("Received %d bytes: %q\n", n, buf[:n])
-	time.Sleep(2 * time.Second)
-	ws.Write([]byte("D"))
-	n, _ = ws.Read(buf)
-	log.Printf("Received %d bytes: %q\n", n, buf[:n])
-	time.Sleep(2 * time.Second)
-	ws.Close()
+Loop:
+	for {
+		n, _ := ws.Read(buf)
+		log.Printf("Received %d bytes: %q\n", n, buf[:n])
+		req := string(buf[:n])
+		req = strings.ToUpper(req)
+		switch req {
+		case "HELLO":
+			ws.Write([]byte("Hello"))
+			break
+		default:
+			if strings.HasPrefix(req, "FROM ") {
+				name := req[len("FROM "):]
+				log.Printf("Client %q connected\n", name)
+				break
+			}
+			log.Println("Protocol error: ", req)
+			ws.Close()
+			break Loop
+		}
+	}
 }
 
 func handleMainRoute(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("handle /")
+	log.Println("handle / (client address: ", r.RemoteAddr, ")")
 	err := tpl.ExecuteTemplate(w, "tpl.gohtml", `This is a text`)
 	if err != nil {
 		log.Fatal(err)

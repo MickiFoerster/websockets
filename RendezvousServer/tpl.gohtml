@@ -29,22 +29,17 @@
 
   ws.onopen = function() {
     console.log('onopen: websocket connection established')
-    ws.send('A');
+    ws.send('hello');
     console.log('onopen: message sent');
   };
 
   ws.onmessage = function(message) {
     console.log('onmessage: server: ' + message.data);
-    var li = document.createElement('li');
-    li.innerHTML = message.data
-    server.appendChild(li);
-
-    var msg = message.data + message.data;
-    ws.send(msg);
-
-    li = document.createElement('li');
-    li.innerHTML = msg;
-    client.appendChild(li);
+    if (message.data.toUpperCase() === "HELLO") {
+      ws.send("from Sensor4711");
+    } else {
+			console.log("Protocol error: " + message.data)
+    }
   };
 
   ws.onclose = function(event) {
