@@ -86,20 +86,42 @@ async fn handle_socket(socket: WebSocket, who: SocketAddr) {
         while let Some(Ok(msg)) = receiver.next().await {
             let msg = match msg {
                 Message::Text(t) => t,
-                Message::Binary(_) => todo!(),
-                Message::Ping(_) => todo!(),
-                Message::Pong(_) => todo!(),
-                Message::Close(_) => todo!(),
+                Message::Binary(_) => return,
+                Message::Ping(_) => return,
+                Message::Pong(_) => return,
+                Message::Close(_) => return,
             };
 
             tracing::info!("received: {:#?}", msg);
+
+            #[derive(serde::Deserialize)]
+            pub struct FormExtractor {
+                pub username: String,
+                pub password: String,
+            }
+
+            let extract = match serde_json::from_str::<FormExtractor>(&msg) {
+                Ok(v) => Some(v),
+                Err(_) => None,
+            };
+
+            let (result, message) = match extract {
+                Some(v) => {
+                    if v.username.to_lowercase() == "john" && v.password == "password" {
+                        (true, "correct credentials")
+                    } else {
+                        (false, "wrong credentials")
+                    }
+                }
+                None => (false, "unexpected data received"),
+            };
 
             match tx
                 .send(
                     json!(
                     {
-                        "success": "true",
-                        "message": format!("{}", msg)
+                        "success": result,
+                        "message": format!("{}", message)
                     })
                     .to_string(),
                 )
