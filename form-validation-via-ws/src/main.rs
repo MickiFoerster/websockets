@@ -21,7 +21,7 @@ async fn main() {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-                "form_validation_websockets=debug,tower_http=info,tower=info".into()
+                "form_validation_via_ws=debug,tower_http=info,tower=info".into()
             }),
         )
         .with(tracing_subscriber::fmt::layer())
@@ -71,19 +71,18 @@ async fn handle_socket(socket: WebSocket, who: SocketAddr) {
 
     // task for sending messages to the client
     let mut send_task = tokio::spawn(async move {
-        tracing::info!("sender waits for message");
         while let Some(msg) = rx.recv().await {
-            tracing::info!("sender received {msg:?} via internal channel");
             if sender.send(Message::Text(msg)).await.is_err() {
                 return;
             }
         }
-        tracing::info!("sender finished");
     });
 
     // receiver task
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(msg)) = receiver.next().await {
+            tracing::debug!("received: {:#?}", msg);
+
             let msg = match msg {
                 Message::Text(t) => t,
                 Message::Binary(_) => continue,
@@ -91,8 +90,6 @@ async fn handle_socket(socket: WebSocket, who: SocketAddr) {
                 Message::Pong(_) => continue,
                 Message::Close(_) => return,
             };
-
-            tracing::info!("received: {:#?}", msg);
 
             #[derive(serde::Deserialize)]
             pub struct FormExtractor {
@@ -127,31 +124,29 @@ async fn handle_socket(socket: WebSocket, who: SocketAddr) {
                 )
                 .await
             {
-                Ok(v) => tracing::debug!("Ok: {v:?}"),
-                Err(v) => tracing::debug!("Err: {v:?}"),
+                Ok(_) => tracing::debug!("value send from receiver to sender"),
+                Err(e) => tracing::debug!("Err: {e:?}"),
             }
-            tracing::info!("value send from receiver to sender");
         }
     });
 
-    // If any one of the tasks exit, abort the other.
     tokio::select! {
         rv_a = (&mut send_task) => {
             match rv_a {
-                Ok(()) => println!("{who} connection closed"),
-                Err(e) => println!("Error sending messages {e:?}")
+                Ok(()) => tracing::info!("{who} connection closed"),
+                Err(e) => tracing::info!("Error sending messages {e:?}")
             }
             recv_task.abort();
         },
         rv_b = (&mut recv_task) => {
             match rv_b {
-                Ok(()) => println!("connection receiving part closed"),
-                Err(e) => println!("Error receiving messages {e:?}")
+                Ok(()) => tracing::info!("connection receiving part closed"),
+                Err(e) => tracing::info!("Error receiving messages {e:?}")
             }
             send_task.abort();
         }
     }
 
     // returning from the handler closes the websocket connection
-    println!("Websocket context {who} destroyed");
+    tracing::info!("Websocket context {who} destroyed");
 }
