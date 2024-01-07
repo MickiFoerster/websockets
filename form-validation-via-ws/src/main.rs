@@ -86,9 +86,9 @@ async fn handle_socket(socket: WebSocket, who: SocketAddr) {
         while let Some(Ok(msg)) = receiver.next().await {
             let msg = match msg {
                 Message::Text(t) => t,
-                Message::Binary(_) => return,
-                Message::Ping(_) => return,
-                Message::Pong(_) => return,
+                Message::Binary(_) => continue,
+                Message::Ping(_) => continue,
+                Message::Pong(_) => continue,
                 Message::Close(_) => return,
             };
 
