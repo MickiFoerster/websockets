@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket Form</title>
+</head>
+<body>
+  <form id="myForm">
+    <input type="text" name="username" placeholder="Username">
+    <input type="password" name="password" placeholder="Password">
+    <button type="button" onclick="submitForm()">Submit</button>
+  </form>
+
+  <script>
+    const ws = new WebSocket('ws://localhost:3000/ws');
+
+    function submitForm() {
+      const form = document.getElementById('myForm');
+      const formData = new FormData(form);
+      const data = {};
+
+      formData.forEach((value, key) => {
+        data[key] = value;
+      });
+
+      ws.send(JSON.stringify(data));
+    }
+
+    ws.onmessage = (event) => {
+        console.log(event.data);
+
+        let response;
+
+        try {
+            response = JSON.parse(event.data);
+        } catch (e) {
+            console.log(`could not parse JSON: ${e.message}`)
+            return;
+        }
+
+        if (response.success) {
+            alert('Form submission successful');
+        } else {
+            alert('Form submission failed: ' + response.message);
+        }
+    };
+  </script>
+</body>
+</html>
+

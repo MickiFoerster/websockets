@@ -1,0 +1,21 @@
+[package]
+name = "form-validation-via-ws"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { version = "0.7.3", features = ["ws"] }
+axum-extra = { version = "0.9.1", features = ["typed-header"] }
+futures = "0.3"
+futures-util = { version = "0.3", default-features = false, features = [
+    "sink",
+    "std",
+] }
+headers = "0.4.0"
+serde = { version = "1.0.195", features = ["derive"] }
+serde_json = "1.0.111"
+tokio = { version = "1.0", features = ["full"] }
+tower = { version = "0.4.13", features = ["util"] }
+tower-http = { version = "0.5.0", features = ["fs", "trace"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
