@@ -13,18 +13,22 @@
   </form>
 
   <script>
-    const ws = new WebSocket('ws://localhost:3000/ws');
+    let ws = new WebSocket('ws://localhost:3000/ws');
 
     function submitForm() {
-      const form = document.getElementById('myForm');
-      const formData = new FormData(form);
-      const data = {};
+        const form = document.getElementById('myForm');
+        const formData = new FormData(form);
+        let data = {};
 
-      formData.forEach((value, key) => {
-        data[key] = value;
-      });
+        console.log(ws.readyState);
 
-      ws.send(JSON.stringify(data));
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+        data = JSON.stringify(data);
+
+        console.log(`send now this ${data}`);
+        ws.send(data);
     }
 
     ws.onmessage = (event) => {

@@ -20,8 +20,9 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 async fn main() {
     tracing_subscriber::registry()
         .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "form_validation_websockets=debug,tower_http=debug".into()),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                "form_validation_websockets=debug,tower_http=info,tower=info".into()
+            }),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
@@ -81,16 +82,24 @@ async fn handle_socket(socket: WebSocket, who: SocketAddr) {
     });
 
     // receiver task
-    let tx2 = tx.clone();
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(msg)) = receiver.next().await {
-            tracing::info!("received: {msg:#?}");
-            match tx2
+            let msg = match msg {
+                Message::Text(t) => t,
+                Message::Binary(_) => todo!(),
+                Message::Ping(_) => todo!(),
+                Message::Pong(_) => todo!(),
+                Message::Close(_) => todo!(),
+            };
+
+            tracing::info!("received: {:#?}", msg);
+
+            match tx
                 .send(
                     json!(
                     {
                         "success": "true",
-                        "message": "hello"
+                        "message": format!("{}", msg)
                     })
                     .to_string(),
                 )
